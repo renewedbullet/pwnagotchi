@@ -1,3 +1,24 @@
+THIS IS A TESTING REPO NOT ACTIVELY DEVELOPED PLEASE USE JAYOFELONY GITHUB FOR PWNAGOTCHI OFFICIAL SOFTWARE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Pwnagotchi
 This is the main source for all forks:
 - RPiZeroW (32bit)
