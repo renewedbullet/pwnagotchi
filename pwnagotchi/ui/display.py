@@ -202,6 +202,9 @@ class Display(View):
     def is_inky(self):
         return self._implementation.name == 'inky'
 
+    def is_dummy_display(self):
+        return self._implementation.name == 'dummydisplay'
+
     def is_papirus(self):
         return self._implementation.name == 'papirus'
 
@@ -231,6 +234,9 @@ class Display(View):
 
     def is_waveshare35lcd(self):
         return self._implementation.name == 'waveshare35lcd'
+
+    def is_adfruit213v3(self):
+        return self._implementation.name == 'adafruit2in13_v3'
 
     def is_waveshare_any(self):
         return self.is_waveshare_v1() or self.is_waveshare_v2()

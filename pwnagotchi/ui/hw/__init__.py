@@ -1,4 +1,5 @@
 from pwnagotchi.ui.hw.inky import Inky
+from pwnagotchi.ui.hw.dummydisplay import DummyDisplay
 from pwnagotchi.ui.hw.papirus import Papirus
 from pwnagotchi.ui.hw.oledhat import OledHat
 from pwnagotchi.ui.hw.lcdhat import LcdHat
@@ -24,6 +25,7 @@ from pwnagotchi.ui.hw.displayhatmini import DisplayHatMini
 from pwnagotchi.ui.hw.pirateaudio import PirateAudio
 from pwnagotchi.ui.hw.pitft import Pitft
 from pwnagotchi.ui.hw.tftbonnet import TftBonnet
+from pwnagotchi.ui.hw.adafruit2in13 import Adafruit2in13V3
 from pwnagotchi.ui.hw.waveshareoledlcd import Waveshareoledlcd
 from pwnagotchi.ui.hw.waveshare1in02 import Waveshare1in02
 from pwnagotchi.ui.hw.waveshare1in54 import Waveshare154
@@ -74,6 +76,9 @@ def display_for(config):
     # config has been normalized already in utils.load_config
     if config['ui']['display']['type'] == 'inky':
         return Inky(config)
+
+    elif config['ui']['display']['type'] == 'dummydisplay':
+        return DummyDisplay(config)
 
     elif config['ui']['display']['type'] == 'papirus':
         return Papirus(config)
@@ -176,6 +181,9 @@ def display_for(config):
 
     elif config['ui']['display']['type'] == 'waveshare_4':
         return WaveshareV4(config)
+
+    elif config['ui']['display']['type'] == 'adafruit2in13_v3':
+        return Adafruit2in13V3(config)
 
     elif config['ui']['display']['type'] == 'waveshare2in13bc':
         return Waveshare213bc(config)

@@ -238,8 +238,12 @@ def load_config(args):
                 config = merge_config(additional_config, config)
 
     # the very first step is to normalize the display name, so we don't need dozens of if/elif around
+    # Dummy Display -------------------------------------------------------------------
+    if config['ui']['display']['type'] in ('dummy', 'dummydisplay'):
+        config['ui']['display']['type'] = 'dummydisplay'
+
     # NON E-INK DISPLAYS---------------------------------------------------------------
-    if config['ui']['display']['type'] in ('inky', 'inkyphat'):
+    elif config['ui']['display']['type'] in ('inky', 'inkyphat'):
         config['ui']['display']['type'] = 'inky'
 
     elif config['ui']['display']['type'] in ('papirus', 'papi'):
@@ -282,6 +286,13 @@ def load_config(args):
         config['ui']['display']['type'] = 'waveshare35lcd'
 
     # E-INK DISPLAYS ------------------------------------------------------------------------
+
+    # Adafruit
+
+    elif config['ui']['display']['type'] in ('adafruit2in13_v3', 'adafruit2in13v3', 'af213v3', 'adafruit_213v3', 'adafruit213inv3'):
+        config['ui']['display']['type'] = 'adafruit2in13_v3'
+
+    # Waveshare
 
     elif config['ui']['display']['type'] in ('waveshare1in02', 'ws1in02', 'ws102', 'waveshare_102', 'waveshare_1in02'):
         config['ui']['display']['type'] = 'waveshare1in02'
@@ -453,8 +464,8 @@ def load_config(args):
         config['ui']['display']['type'] = 'weact2in9'
 
     else:
-        print("unsupported display type %s" % config['ui']['display']['type'])
-        sys.exit(1)
+        logging.debug("using dummy display, as your display type is unsupported")
+        config['ui']['display']['type'] = 'dummydisplay'
 
     return config
 

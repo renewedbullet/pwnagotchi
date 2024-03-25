@@ -2,12 +2,11 @@ import logging
 
 import pwnagotchi.ui.fonts as fonts
 from pwnagotchi.ui.hw.base import DisplayImpl
-from PIL import Image
 
 
-class Waveshare213bV4(DisplayImpl):
+class Adafruit2in13V3(DisplayImpl):
     def __init__(self, config):
-        super(Waveshare213bV4, self).__init__(config, 'waveshare2in13b_v4')
+        super(Adafruit2in13V3, self).__init__(config, 'adafruit2in13_v3')
 
     def layout(self):
         fonts.setup(10, 9, 10, 35, 25, 9)
@@ -32,18 +31,15 @@ class Waveshare213bV4(DisplayImpl):
         return self._layout
 
     def initialize(self):
-        logging.info("initializing waveshare 2.13inb v2in13_V4 display")
-        from pwnagotchi.ui.hw.libs.waveshare.v2in13b_v4.epd2in13b_V4 import EPD
+        logging.info("initializing adafruit 2in13 V3 display")
+        from pwnagotchi.ui.hw.libs.adafruit.v2in13_v3.epd2in13_v3 import EPD
         self._display = EPD()
         self._display.init()
-        self._display.Clear()
+        self._display.Clear(0xFF)
 
-    def render(self, canvasBlack=None, canvasRed=None):
-        buffer = self._display.getbuffer
-        image = Image.new('1', (self._layout['height'], self._layout['width']))
-        imageBlack = image if canvasBlack is None else canvasBlack
-        imageRed = image if canvasRed is None else canvasRed
-        self._display.display(buffer(imageBlack), buffer(imageRed))
+    def render(self, canvas):
+        buf = self._display.getbuffer(canvas)
+        self._display.displayPartial(buf)
 
     def clear(self):
-        self._display.Clear()
+        self._display.Clear(0xFF)
