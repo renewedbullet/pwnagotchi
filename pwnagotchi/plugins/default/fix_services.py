@@ -5,7 +5,6 @@ import time
 import random
 from io import TextIOWrapper
 import os
-import platform
 
 import pwnagotchi
 from pwnagotchi import plugins
@@ -36,6 +35,7 @@ class FixServices(plugins.Plugin):
         self.pattern4 = re.compile(r'error 400: could not find interface wlan0mon')
         self.pattern5 = re.compile(r'fatal error: concurrent map iteration and map write')
         self.pattern6 = re.compile(r'panic: runtime error')
+        self.pattern7 = re.compile(r'ieee80211 phy0: _brcmf_set_multicast_list: Setting allmulti failed, -110')
         self.isReloadingMon = False
         self.connection = None
         self.LASTTRY = 0
@@ -112,54 +112,49 @@ class FixServices(plugins.Plugin):
         logging.debug("[Fix_Services]**** epoch")
         if time.time() - self.LASTTRY > 180:
             # get last 10 lines
-            display = None
+            display = agent.view()
 
             logging.debug("[Fix_Services]**** checking")
 
             # Look for pattern 1
-            if platform.machine().startswith('arm'):
-                if len(self.pattern.findall(last_lines)) >= 3:
-                    logging.debug("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
-                    if hasattr(agent, 'view'):
-                        display = agent.view()
-                        display.set('status', 'Blind-Bug detected. Restarting.')
-                        display.update(force=True)
-                    logging.debug('[Fix_Services] Blind-Bug detected. Restarting.')
-                    try:
-                        self._tryTurningItOffAndOnAgain(agent)
-                    except Exception as err:
-                        logging.warning("[Fix_Services] TTOAOA: %s" % repr(err))
+            if len(self.pattern.findall(last_lines)) >= 3:
+                logging.debug("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
+                if hasattr(agent, 'view'):
+                    display.set('status', 'Blind-Bug detected. Restarting.')
+                    display.update(force=True)
+                logging.debug('[Fix_Services] Blind-Bug detected. Restarting.')
+                try:
+                    self._tryTurningItOffAndOnAgain(agent)
+                except Exception as err:
+                    logging.warning("[Fix_Services] TTOAOA: %s" % repr(err))
 
             # Look for pattern 2
             elif len(self.pattern2.findall(other_last_lines)) >= 5:
-                if platform.machine().startswith('arm'):
-                    logging.debug("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
-                    if hasattr(agent, 'view'):
-                        display = agent.view()
-                        display.set('status', 'Wifi channel stuck. Restarting recon.')
-                        display.update(force=True)
-                    logging.debug('[Fix_Services] Wifi channel stuck. Restarting recon.')
+                logging.debug("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
+                if hasattr(agent, 'view'):
+                    display.set('status', 'Wifi channel stuck. Restarting recon.')
+                    display.update(force=True)
+                logging.debug('[Fix_Services] Wifi channel stuck. Restarting recon.')
 
-                    try:
-                        result = agent.run("wifi.recon off; wifi.recon on")
-                        if result["success"]:
-                            logging.debug("[Fix_Services] wifi.recon flip: success!")
-                            if display:
-                                display.update(force=True, new_data={"status": "Wifi recon flipped!",
-                                                                     "face": faces.COOL})
-                            else:
-                                print("Wifi recon flipped\nthat was easy!")
+                try:
+                    result = agent.run("wifi.recon off; wifi.recon on")
+                    if result["success"]:
+                        logging.debug("[Fix_Services] wifi.recon flip: success!")
+                        if display:
+                            display.update(force=True, new_data={"status": "Wifi recon flipped!",
+                                                                 "face": faces.COOL})
                         else:
-                            logging.warning("[Fix_Services] wifi.recon flip: FAILED: %s" % repr(result))
+                            print("Wifi recon flipped\nthat was easy!")
+                    else:
+                        logging.warning("[Fix_Services] wifi.recon flip: FAILED: %s" % repr(result))
 
-                    except Exception as err:
-                        logging.error("[Fix_Services wifi.recon flip] %s" % repr(err))
+                except Exception as err:
+                    logging.error("[Fix_Services wifi.recon flip] %s" % repr(err))
 
             # Look for pattern 3
             elif len(self.pattern3.findall(other_last_lines)) >= 1:
                 logging.debug("[Fix_Services] Firmware has halted or crashed. Restarting wlan0mon.")
                 if hasattr(agent, 'view'):
-                    display = agent.view()
                     display.set('status', 'Firmware has halted or crashed. Restarting wlan0mon.')
                     display.update(force=True)
                 try:
@@ -173,7 +168,6 @@ class FixServices(plugins.Plugin):
             elif len(self.pattern4.findall(other_other_last_lines)) >= 3:
                 logging.debug("[Fix_Services] wlan0 is down!")
                 if hasattr(agent, 'view'):
-                    display = agent.view()
                     display.set('status', 'Restarting wlan0 now!')
                     display.update(force=True)
                 try:
@@ -187,7 +181,6 @@ class FixServices(plugins.Plugin):
             elif len(self.pattern5.findall(other_other_last_lines)) >= 1:
                 logging.debug("[Fix_Services] Bettercap has crashed!")
                 if hasattr(agent, 'view'):
-                    display = agent.view()
                     display.set('status', 'Restarting pwnagotchi!')
                     display.update(force=True)
                 os.system("systemctl restart bettercap")
@@ -197,11 +190,28 @@ class FixServices(plugins.Plugin):
             elif len(self.pattern6.findall(other_other_last_lines)) >= 1:
                 logging.debug("[Fix_Services] Bettercap has crashed!")
                 if hasattr(agent, 'view'):
-                    display = agent.view()
                     display.set('status', 'Restarting pwnagotchi!')
                     display.update(force=True)
                 os.system("systemctl restart bettercap")
                 pwnagotchi.restart("AUTO")
+
+            # Look for pattern 7
+            elif len(self.pattern7.findall(other_other_last_lines)) >= 1:
+                logging.debug("[Fix_Services] Monitor mode failed!")
+                try:
+                    result = agent.run("wifi.recon off; wifi.recon on")
+                    if result["success"]:
+                        logging.debug("[Fix_Services] wifi.recon flip: success!")
+                        if display:
+                            display.update(force=True, new_data={"status": "Wifi recon flipped!",
+                                                                 "face": faces.COOL})
+                        else:
+                            print("Wifi recon flipped\nthat was easy!")
+                    else:
+                        logging.warning("[Fix_Services] wifi.recon flip: FAILED: %s" % repr(result))
+
+                except Exception as err:
+                    logging.error("[Fix_Services wifi.recon flip] %s" % repr(err))
             else:
                 print("logs look good")
 
