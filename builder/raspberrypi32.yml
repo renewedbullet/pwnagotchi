@@ -374,11 +374,9 @@
       when: golang.changed
 
     - name: download pwngrid
-      unarchive:
-        remote_src: yes
-        src: "{{ packages.opwngrid.url }}"
-        dest: /usr/local/bin/
-        mode: 0755
+      git:
+        repo: "{{ packages.pwngrid.source }}"
+        dest: /usr/local/src/pwngrid
 
     - name: install pwngrid
       shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
